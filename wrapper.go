@@ -22,12 +22,14 @@ func (w *wrapper) Enabled(ctx context.Context, level slog.Level) bool {
 
 func (w *wrapper) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &wrapper{
-		parent: w.parent.WithAttrs(attrs),
+		handler: w.handler,
+		parent:  w.parent.WithAttrs(attrs),
 	}
 }
 
 func (w *wrapper) WithGroup(name string) slog.Handler {
 	return &wrapper{
-		parent: w.parent.WithGroup(name),
+		handler: w.handler,
+		parent:  w.parent.WithGroup(name),
 	}
 }

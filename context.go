@@ -13,8 +13,6 @@ func (key ctxKey) String() string {
 
 var key = &ctxKey{"ctxslog"}
 
-const nAttrsInline = 5
-
 type mergedAttrs struct {
 	parent *mergedAttrs
 	args   []any
@@ -54,7 +52,7 @@ func contextAttrs(ctx context.Context) *mergedAttrs {
 	return attrs.(*mergedAttrs)
 }
 
-func (attrs *mergedAttrs) addToRecord(record slog.Record) {
+func (attrs *mergedAttrs) addToRecord(record *slog.Record) {
 	if attrs == nil {
 		return
 	}
@@ -79,6 +77,7 @@ func New(parent slog.Handler) slog.Handler {
 
 func inject(ctx context.Context, parent func(ctx context.Context, record slog.Record) error, record slog.Record) error {
 	attrs := contextAttrs(ctx)
-	attrs.addToRecord(record)
-	return parent(ctx, record)
+	newRecord := record.Clone()
+	attrs.addToRecord(&newRecord)
+	return parent(ctx, newRecord)
 }
