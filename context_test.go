@@ -11,6 +11,16 @@ import (
 	"testing"
 )
 
+func TestString(t *testing.T) {
+	ctx := context.Background()
+	ctx = With(ctx, "hello", 1)
+	ctx = With(ctx, "world", 2)
+	ctx = With(ctx)
+	if got, want := fmt.Sprint(ctx), "context.Background.WithValue(type *ctxslog.ctxKey, val hello=1).WithValue(type *ctxslog.ctxKey, val world=2)"; got != want {
+		t.Errorf("unexpected output: got %q, want %q", got, want)
+	}
+}
+
 func TestWith(t *testing.T) {
 	buf := &bytes.Buffer{}
 	parent := slog.NewTextHandler(buf, nil)

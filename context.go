@@ -1,13 +1,16 @@
 package ctxslog
 
 import (
+	"bytes"
 	"context"
 	"log/slog"
+	"strings"
+	"time"
 )
 
 type ctxKey struct{ name string }
 
-func (key ctxKey) String() string {
+func (key *ctxKey) String() string {
 	return key.name
 }
 
@@ -17,6 +20,38 @@ type mergedAttrs struct {
 	parent *mergedAttrs
 	args   []any
 	attrs  []slog.Attr
+}
+
+var handlerOptions = &slog.HandlerOptions{
+	ReplaceAttr: replaceAttr,
+}
+
+func replaceAttr(groups []string, a slog.Attr) slog.Attr {
+	if len(groups) != 0 {
+		return a
+	}
+
+	// Remove time, level and msg.
+	if a.Key == slog.TimeKey || a.Key == slog.LevelKey || a.Key == slog.MessageKey {
+		return slog.Attr{}
+	}
+
+	return a
+}
+
+func (attrs *mergedAttrs) String() string {
+	buf := &bytes.Buffer{}
+	handler := slog.NewTextHandler(buf, handlerOptions)
+	var pc uintptr
+	record := slog.NewRecord(time.Time{}, slog.LevelInfo, "msg", pc)
+	if len(attrs.attrs) != 0 {
+		record.AddAttrs(attrs.attrs...)
+	}
+	if len(attrs.args) != 0 {
+		record.Add(attrs.args...)
+	}
+	handler.Handle(context.Background(), record)
+	return strings.TrimSpace(buf.String())
 }
 
 // WithAttrs is a more efficient version of [With] that accepts only [log/slog.Attrs].
