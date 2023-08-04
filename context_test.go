@@ -3,7 +3,10 @@ package ctxslog
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"log/slog"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -64,5 +67,41 @@ func TestHandlerWithGroup(t *testing.T) {
 	logger.InfoContext(ctx, "hello", "count", 42)
 	if !strings.HasSuffix(buf.String(), " level=INFO msg=hello my_group.count=42 my_group.hello=1 my_group.world=2\n") {
 		t.Errorf("unexpected output: %q", buf.String())
+	}
+}
+
+func BenchmarkWith(b *testing.B) {
+	ctx := context.Background()
+	for i := 0; i < b.N; i++ {
+		ctx := ctx
+		for j := 0; j < 128; j++ {
+			ctx = With(ctx, fmt.Sprintf("hello%d", j), j)
+		}
+		runtime.KeepAlive(ctx)
+	}
+}
+
+func BenchmarkWithAttrs(b *testing.B) {
+	ctx := context.Background()
+	for i := 0; i < b.N; i++ {
+		ctx := ctx
+		for j := 0; j < 128; j++ {
+			ctx = WithAttrs(ctx, slog.Int(fmt.Sprintf("hello%d", j), j))
+		}
+		runtime.KeepAlive(ctx)
+	}
+}
+
+func BenchmarkLog(b *testing.B) {
+	ctx := context.Background()
+	for j := 0; j < 128; j++ {
+		ctx = WithAttrs(ctx, slog.Int(fmt.Sprintf("hello%d", j), j))
+	}
+
+	parent := slog.NewTextHandler(io.Discard, nil)
+	child := New(parent)
+	logger := slog.New(child)
+	for i := 0; i < b.N; i++ {
+		logger.InfoContext(ctx, "hello")
 	}
 }
