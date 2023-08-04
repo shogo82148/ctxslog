@@ -10,7 +10,7 @@ jobs:
         go:
           - "1.21.0-rc.4"
       fail-fast: false
-    runs-on: ubutntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
