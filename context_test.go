@@ -7,9 +7,21 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
-	"strings"
 	"testing"
 )
+
+var optsRemoveTime = &slog.HandlerOptions{
+	ReplaceAttr: removeTime,
+}
+
+// removeTime removes time attribute for stable testing.
+func removeTime(groups []string, a slog.Attr) slog.Attr {
+	// Remove time.
+	if a.Key == slog.TimeKey && len(groups) == 0 {
+		return slog.Attr{}
+	}
+	return a
+}
 
 func TestString(t *testing.T) {
 	ctx := context.Background()
@@ -23,7 +35,7 @@ func TestString(t *testing.T) {
 
 func TestWith(t *testing.T) {
 	buf := &bytes.Buffer{}
-	parent := slog.NewTextHandler(buf, nil)
+	parent := slog.NewTextHandler(buf, optsRemoveTime)
 	child := New(parent)
 	logger := slog.New(child)
 
@@ -32,14 +44,14 @@ func TestWith(t *testing.T) {
 	ctx = With(ctx, "world", 2)
 	ctx = With(ctx)
 	logger.InfoContext(ctx, "hello", "count", 42)
-	if !strings.HasSuffix(buf.String(), " level=INFO msg=hello count=42 hello=1 world=2\n") {
+	if buf.String() != "level=INFO msg=hello count=42 hello=1 world=2\n" {
 		t.Errorf("unexpected output: %q", buf.String())
 	}
 }
 
 func TestWithAttrs(t *testing.T) {
 	buf := &bytes.Buffer{}
-	parent := slog.NewTextHandler(buf, nil)
+	parent := slog.NewTextHandler(buf, optsRemoveTime)
 	child := New(parent)
 	logger := slog.New(child)
 
@@ -47,36 +59,58 @@ func TestWithAttrs(t *testing.T) {
 	ctx = WithAttrs(ctx)
 	ctx = WithAttrs(ctx, slog.Int("hello", 1), slog.Int("world", 2))
 	logger.InfoContext(ctx, "hello", "count", 42)
-	if !strings.HasSuffix(buf.String(), " level=INFO msg=hello count=42 hello=1 world=2\n") {
+	if buf.String() != "level=INFO msg=hello count=42 hello=1 world=2\n" {
 		t.Errorf("unexpected output: %q", buf.String())
 	}
 }
 
 func TestHandlerWithAttrs(t *testing.T) {
 	buf := &bytes.Buffer{}
-	parent := slog.NewTextHandler(buf, nil)
+	parent := slog.NewTextHandler(buf, optsRemoveTime)
 	child := New(parent).WithAttrs([]slog.Attr{slog.Int("hello", 1)})
 	logger := slog.New(child)
 
 	ctx := context.Background()
 	ctx = WithAttrs(ctx, slog.Int("world", 2))
 	logger.InfoContext(ctx, "hello", "count", 42)
-	if !strings.HasSuffix(buf.String(), " level=INFO msg=hello hello=1 count=42 world=2\n") {
+	if buf.String() != "level=INFO msg=hello hello=1 count=42 world=2\n" {
 		t.Errorf("unexpected output: %q", buf.String())
 	}
 }
 
 func TestHandlerWithGroup(t *testing.T) {
 	buf := &bytes.Buffer{}
-	parent := slog.NewTextHandler(buf, nil)
+	parent := slog.NewTextHandler(buf, optsRemoveTime)
 	child := New(parent).WithGroup("my_group")
 	logger := slog.New(child)
 
 	ctx := context.Background()
 	ctx = WithAttrs(ctx, slog.Int("hello", 1), slog.Int("world", 2))
 	logger.InfoContext(ctx, "hello", "count", 42)
-	if !strings.HasSuffix(buf.String(), " level=INFO msg=hello my_group.count=42 my_group.hello=1 my_group.world=2\n") {
+	if buf.String() != "level=INFO msg=hello my_group.count=42 my_group.hello=1 my_group.world=2\n" {
 		t.Errorf("unexpected output: %q", buf.String())
+	}
+}
+
+func TestWithLevel(t *testing.T) {
+	buf := &bytes.Buffer{}
+	parent := slog.NewTextHandler(buf, optsRemoveTime)
+	child := New(parent)
+	logger := slog.New(child)
+
+	ctx := context.Background()
+	logger.InfoContext(ctx, "this log should be logged")
+	logger.DebugContext(ctx, "this log should not be logged")
+
+	ctx = WithLevel(ctx, slog.LevelDebug) // enable debug level
+	logger.DebugContext(ctx, "this log should be logged in this context")
+
+	got := buf.String()
+	want := `level=INFO msg="this log should be logged"
+level=DEBUG msg="this log should be logged in this context"
+`
+	if got != want {
+		t.Errorf("unexpected output: got %q, want %q", got, want)
 	}
 }
 
