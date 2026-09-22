@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
-      - uses: reviewdog/action-golangci-lint@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: reviewdog/action-golangci-lint@c76cceaaab89abe74e649d2e34c6c9adc26662d2 # v2.10.0
         with:
           github_token: ${{ secrets.github_token }}
 
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
-      - uses: reviewdog/action-actionlint@v1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: reviewdog/action-actionlint@5be522b94290e249dba9f5daded2f7157733e3d2 # v1.76.1
         with:
           github_token: ${{ secrets.github_token }}
