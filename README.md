@@ -1,4 +1,4 @@
-[![test](https://github.com/shogo82148/ctxslog/actions/workflows/test.yml/badge.svg)](https://github.com/shogo82148/ctxslog/actions/workflows/test.yml)
+[![test](https://github.com/shogo82148/ctxslog/actions/workflows/test.yaml/badge.svg)](https://github.com/shogo82148/ctxslog/actions/workflows/test.yaml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/ctxslog.svg)](https://pkg.go.dev/github.com/shogo82148/ctxslog)
 
 # ctxslog
