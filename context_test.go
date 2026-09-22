@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -21,6 +22,20 @@ func removeTime(groups []string, a slog.Attr) slog.Attr {
 		return slog.Attr{}
 	}
 	return a
+}
+
+func TestString(t *testing.T) {
+	ctx := context.Background()
+	ctx = With(ctx, "hello", 1)
+	ctx = With(ctx, "world", 2)
+	ctx = With(ctx)
+	got := fmt.Sprint(ctx)
+	if !strings.Contains(got, "hello=1") {
+		t.Errorf("missing expected output: got %q, want it to contain %q", got, "hello=1")
+	}
+	if !strings.Contains(got, "world=2") {
+		t.Errorf("missing expected output: got %q, want it to contain %q", got, "world=2")
+	}
 }
 
 func TestWith(t *testing.T) {
