@@ -8,6 +8,11 @@ jobs:
     strategy:
       matrix:
         go:
+          - "1.27"
+          - "1.26"
+          - "1.25"
+          - "1.24"
+          - "1.23"
           - "1.22"
           - "1.21"
       fail-fast: false
@@ -28,6 +33,7 @@ jobs:
 
   # notifies that all test jobs are finished.
   finish:
+    if: always()
     needs: test
     runs-on: ubuntu-latest
     steps:

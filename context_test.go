@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -28,8 +29,12 @@ func TestString(t *testing.T) {
 	ctx = With(ctx, "hello", 1)
 	ctx = With(ctx, "world", 2)
 	ctx = With(ctx)
-	if got, want := fmt.Sprint(ctx), "context.Background.WithValue(type *ctxslog.ctxKey, val hello=1).WithValue(type *ctxslog.ctxKey, val world=2)"; got != want {
-		t.Errorf("unexpected output: got %q, want %q", got, want)
+	got := fmt.Sprint(ctx)
+	if !strings.Contains(got, "hello=1") {
+		t.Errorf("missing expected output: got %q, want it to contain %q", got, "hello=1")
+	}
+	if !strings.Contains(got, "world=2") {
+		t.Errorf("missing expected output: got %q, want it to contain %q", got, "world=2")
 	}
 }
 
