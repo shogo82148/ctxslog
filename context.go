@@ -93,7 +93,10 @@ func (attrs *mergedAttrs) String() string {
 	if len(attrs.args) != 0 {
 		record.Add(attrs.args...)
 	}
-	handler.Handle(context.Background(), record)
+
+	// ignore the error from Handle because bytes.Buffer never returns an error.
+	_ = handler.Handle(context.Background(), record)
+
 	return strings.TrimSpace(buf.String())
 }
 
